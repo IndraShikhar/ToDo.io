@@ -6,6 +6,7 @@ import { useToDo } from "../contexts/ToDoContext";
 function CreateNewTask({ handleCreateNewTaskCancle }) {
   const [formData, setFormData] = useState({ title: "", description: "" });
   const { setTasks } = useToDo();
+  const { API } = useToDo();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,7 +20,7 @@ function CreateNewTask({ handleCreateNewTaskCancle }) {
 
     async function createTask() {
       const token = Cookie.get("jwt");
-      const result = await fetch("http://localhost:3000/api/v1/task", {
+      const result = await fetch(`${API}/task`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -7,7 +7,13 @@ function ToDoProvider({ children }) {
   const [loggedIn, setLoggedIn] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [user, setUser] = useState({});
-  const API = import.meta.env.VITE_SERVER_DEV;
+  let API;
+
+  if (import.meta.env.VITE_ENV === "DEVELOPMENT") {
+    API = import.meta.env.VITE_SERVER_DEV;
+  } else {
+    API = import.meta.env.VITE_SERVER_PROD;
+  }
 
   const value = {
     loggedIn,
