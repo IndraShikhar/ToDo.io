@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ToDo from "./pages/ToDo";
 // import PageNotFound from "./pages/PageNotFound";
-import Login from "./pages/login";
+import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Redirect from "./pages/Redirect";
 import { ToDoProvider } from "./contexts/ToDoContext";
