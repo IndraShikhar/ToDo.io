@@ -17,10 +17,10 @@ mongoose.connect(DB).then(() => {
 const port = process.env.PORT || 2000;
 const HOST = "0.0.0.0";
 
-const server = app.listen(port, HOST, () => {
-  console.log(`Server running at http://${HOST}:${port}`);
-});
-
-// const server = app.listen(port, () => {
-//   console.log(`Server running on port ${port}`);
+// const server = app.listen(port, HOST, () => {
+//   console.log(`Server running at http://${HOST}:${port}`);
 // });
+
+const server = app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
