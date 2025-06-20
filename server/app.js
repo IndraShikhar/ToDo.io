@@ -7,11 +7,8 @@ import taskRouter from "./routes/taskRouter.js";
 const app = express();
 
 const allowedOrigins = [
-  "https://to-do-io.vercel.app/",
   "https://to-do-io.vercel.app",
-  "https://your-frontend.com",
   "http://localhost:5173", // For local development
-  "http://192.168.0.106:5173",
 ];
 
 const corsOptions = {
@@ -31,6 +28,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 app.get("/", (req, res, next) => {
   res.status(200).json({ status: "success", message: "The is the TODOio API" });

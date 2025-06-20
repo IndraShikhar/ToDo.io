@@ -3,9 +3,11 @@ import Button from "../ui/Button";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useState } from "react";
 import ProfilePic from "../ui/ProfilePic";
+import UpdateProfile from "./UpdateProfile";
 
 function Header() {
   const [primary, setPrimary] = useState(false);
+  const [profileCard, setProfileCard] = useState(false);
   const { username, isLoggedIn, profilePic } = useAuth();
   const location = useLocation();
   const navigator = useNavigate();
@@ -19,28 +21,39 @@ function Header() {
   );
 
   return (
-    <div className={`font-bold tracking-widest max-h-20`}>
-      <div className="flex items-center justify-between px-6 py-4 bg-amber-400 h-full">
-        <div className="flex items-center">
-          <Link to="/" className={`flex items-center text-amber-900 text-2xl`}>
-            ToDo<span className="text-amber-50">.io</span>
-          </Link>
-        </div>
-        {!isLoggedIn && (
-          <div>
-            <Button to="/login" type="primary">
-              Login
-            </Button>
-          </div>
-        )}
-        {isLoggedIn && (
+    <>
+      {profileCard && <UpdateProfile setProfileCard={setProfileCard} />}
+      <div className={`font-bold tracking-widest max-h-20`}>
+        <div className="flex items-center justify-between px-6 py-4 bg-amber-400 h-full">
           <div className="flex items-center">
-            <ProfilePic src={profilePic} />
-            <span className="ml-2">{username}</span>
+            <Link
+              to="/"
+              className={`flex items-center text-amber-900 text-2xl`}
+            >
+              ToDo<span className="text-amber-50">.io</span>
+            </Link>
           </div>
-        )}
+          {!isLoggedIn && (
+            <div>
+              <Button to="/login" type="primary">
+                Login
+              </Button>
+            </div>
+          )}
+          {isLoggedIn && (
+            <div
+              className="flex items-center"
+              onClick={() => {
+                setProfileCard(true);
+              }}
+            >
+              <ProfilePic src={profilePic} />
+              <span className="ml-2 uppercase">{username}</span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   // return (
@@ -93,7 +106,6 @@ function Header() {
   //         <div
   //           className="self-start cursor-pointer flex"
   //           onClick={() => {
-  //             console.log("Logout");
   //             //   handleLogout();
   //           }}
   //         >

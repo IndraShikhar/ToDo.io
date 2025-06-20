@@ -6,13 +6,15 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTask } from "../contexts/TaskContext";
 import Loader from "../ui/Loader";
 import { dividerClasses } from "@mui/material/Divider";
+import { useToDo } from "../contexts/ToDoContext";
+import EditTask from "../ui/EditTask";
 
 function AppLayout() {
   //   const pathname = window.location.pathname;
 
-  const { dispatch } = useAuth();
+  const { dispatch, status } = useAuth();
   const { dispatch: taskDispatch } = useTask();
-  const { status } = useAuth();
+  const { dispatch: todoDispatch, status: todoStatus } = useToDo();
 
   useEffect(
     function () {
@@ -21,7 +23,6 @@ function AppLayout() {
         const data = await fetchCurrentUser();
 
         if (data.status === "fail") {
-          console.log(data);
           dispatch({ type: "logout" });
         }
 
@@ -41,23 +42,17 @@ function AppLayout() {
     [dispatch, taskDispatch]
   );
 
-  //   return (
-  //     <div className="flex h-screen md:p-4 lg:p-8 xl:p-12 transition-all duration-300">
-  //       <div className="flex flex-col flex-1 w-full rounded-2xl overflow-hidden">
-  //         <Header />
-  //         <Outlet />
-  //       </div>
-  //     </div>
-  //   );
-
   return (
-    <div className="flex h-screen md:p-4 lg:p-8 xl:p-12 transition-all duration-300">
-      {status === "loading" && <Loader />}
-      <div className="flex flex-col bg-amber-50 flex-1 shadow-md md:rounded-2xl overflow-y-auto">
-        {<Header />}
-        <Outlet />
+    <>
+      {/* {taskStatus === "loading" && <Loader />} */}
+      <div className="flex h-screen md:p-4 lg:p-8 xl:p-12 transition-all duration-300">
+        {status === "loading" && <Loader />}
+        <div className="flex flex-col bg-amber-50 flex-1 shadow-md md:rounded-2xl overflow-y-auto">
+          {<Header />}
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

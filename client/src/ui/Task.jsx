@@ -1,64 +1,82 @@
 import Checkbox from "./CheckBox";
 // import OptionIcon from "./ui/OptionIcon";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+
 import { useEffect, useState } from "react";
+import TaskPreview from "./TaskPreviewer";
+import { useToDo } from "../contexts/ToDoContext";
+import Loader from "./Loader";
+import { updateTask } from "../services/apiTODOio";
+import { useTask } from "../contexts/TaskContext";
 
 function Task({ task }) {
-  const [option, setOption] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [completed, setCompleted] = useState(task.completed);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(
-    function () {
-      console.log(
-        `Task ${task._id} with title '${task.title}' is ${completed}`
-      );
-    },
-    [completed, task._id, task.title]
-  );
+  const { dispatch: taskDispatch } = useTask();
+  const { dispatch: todoDispatch } = useToDo();
+
+  const handlePreview = function () {
+    todoDispatch({ type: "setTask", payload: task });
+    setPreview(true);
+  };
+
+  async function handleCompleted() {
+    setIsLoading(true);
+    try {
+      const data = await updateTask({ ...task, completed: !completed });
+      // const data = { ...task, completed: !completed };
+      console.log(data);
+
+      if (data.status === "success") {
+        taskDispatch({ type: "updateTask", payload: data.data.task });
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
-    <div className="relative group rounded-2xl shadow-lg bg-amber-100 p-6 flex items-center justify-center gap-4 hover:shadow-xl transition-all duration-300">
-      {/* Options Icon */}
-      <div className="absolute top-3 right-3">
-        <button
-          onClick={() => setOption(!option)}
-          className="text-amber-900 hover:text-amber-700"
+    <div
+      onClick={handlePreview}
+      className="relative group rounded-2xl  bg-amber-200 p-6 flex items-center justify-center gap-4 hover:shadow-xl transition-all duration-300"
+    >
+      {preview && <TaskPreview task={task} setPreview={setPreview} />}
+      {isLoading && <Loader />}
+
+      <div className="flex items-center justify-center w-full gap-4">
+        {/* Checkbox */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="mt-1"
         >
-          <MoreVertIcon />
-        </button>
-        {option && (
-          <>
-            <div className="absolute right-0 mt-2 w-28 bg-white border border-amber-200 rounded-lg shadow-md z-20">
-              <button className="w-full text-left px-4 py-2 hover:bg-amber-100 flex items-center gap-2">
-                <EditIcon fontSize="small" /> Edit
-              </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-amber-100 flex items-center gap-2 text-red-600">
-                <DeleteIcon fontSize="small" /> Delete
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+          <Checkbox
+            setCompleted={setCompleted}
+            value={completed}
+            handleCompleted={handleCompleted}
+          />
+        </div>
 
-      {/* Checkbox */}
-      <div className="mt-1">
-        <Checkbox setCompleted={setCompleted} value={completed} />
-      </div>
+        {/* Task Info */}
+        <div className="flex-grow min-w-0">
+          <h3 className="font-bold text-xl truncate">{task.title}</h3>
+          <p className="italic text-md text-gray-700 truncate">
+            {task.description}
+          </p>
+        </div>
 
-      {/* Task Info */}
-      <div className="flex-grow min-w-0">
-        <h3 className="font-bold text-xl truncate">{task.title}</h3>
-        <p className="italic text-md text-gray-700 truncate">
-          {task.description}
-        </p>
-      </div>
-
-      {/* Created Date */}
-      <div className="flex flex-col justify-center items-center ml-auto text-xs md:text-sm  text-amber-800 text-right whitespace-nowrap">
-        <p>Created</p>
-        <p className="font-semibold">{task.createdAt.slice(0, 10)}</p>
+        {/* Created Date */}
+        <div className="flex flex-col justify-center items-center ml-auto text-xs md:text-sm  text-amber-800 text-right whitespace-nowrap">
+          <p>Created</p>
+          <p className="font-semibold">{task.createdAt.slice(0, 10)}</p>
+        </div>
       </div>
     </div>
   );

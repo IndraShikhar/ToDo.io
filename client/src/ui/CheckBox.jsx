@@ -1,15 +1,18 @@
 import styled from "styled-components";
 
-function Checkbox({ setCompleted, value }) {
+function Checkbox({ handleCompleted, setCompleted, value }) {
   return (
     <StyledWrapper>
       <div className="checkbox-container">
         <label className="ios-checkbox red">
           <input
-            onChange={(e) => setCompleted(e.target.checked)}
+            onChange={(e) => {
+              setCompleted(e.target.value);
+              handleCompleted();
+            }}
             type="checkbox"
-            value={value}
-            disabled={value}
+            checked={!!value}
+            disabled={!!value}
           />
           <div className="checkbox-wrapper">
             <div className="checkbox-bg" />
@@ -37,8 +40,8 @@ const StyledWrapper = styled.div`
     padding: 10px;
     background: #f8fafc;
     border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), */
+    /* 0 2px 4px -2px rgba(0, 0, 0, 0.05); */
   }
 
   .ios-checkbox {

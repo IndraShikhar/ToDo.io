@@ -6,8 +6,8 @@ import SignUp from "./pages/SignUp";
 import AppLayout from "./components/AppLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import Protected from "./ui/Protected";
-import { useEffect } from "react";
 import { TaskProvider } from "./contexts/TaskContext";
+import { ToDoProvider } from "./contexts/ToDoContext";
 
 function App() {
   const router = createBrowserRouter([
@@ -41,7 +41,9 @@ function App() {
   return (
     <AuthProvider>
       <TaskProvider>
-        <RouterProvider router={router} />
+        <ToDoProvider>
+          <RouterProvider router={router} />
+        </ToDoProvider>
       </TaskProvider>
     </AuthProvider>
   );

@@ -96,8 +96,6 @@ const authController = {
       validateBeforeSave: true,
     });
 
-    console.log(req.user);
-
     const shortUser = filterUserPublicData(req.user);
 
     res.status(200).json({
@@ -107,6 +105,14 @@ const authController = {
         user: shortUser,
       },
     });
+  },
+
+  logout(req, res) {
+    res.cookie("jwt", "loggedout", {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+    });
+    res.status(200).json({ status: "success", message: "Logged out" });
   },
 };
 

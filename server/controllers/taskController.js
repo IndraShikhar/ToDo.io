@@ -3,7 +3,6 @@ import Task from "../models/taskModel.js";
 const taskController = {
   async createTask(req, res, next) {
     // title,description,completed
-    console.log(req.body);
     const { title, description } = req.body;
 
     const data = {
@@ -55,6 +54,22 @@ const taskController = {
       data: {
         message: "Task updated successfully",
         task,
+      },
+    });
+  },
+
+  async deleteTask(req, res, next) {
+    const { id } = req.params;
+
+    await Task.findByIdAndDelete(id);
+
+    req.user.tasks.pull(id);
+    await req.user.save();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        message: "Task deleted successfully",
       },
     });
   },

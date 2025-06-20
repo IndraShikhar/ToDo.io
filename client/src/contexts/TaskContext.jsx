@@ -21,6 +21,22 @@ const reducer = function (state, action) {
         tasks: [...state.tasks, action.payload],
         status: "idle",
       };
+    case "updateTask":
+      action.payload.completed = !action.payload.completed;
+
+      return {
+        ...state,
+        tasks: state.tasks.map((task) =>
+          task._id === action.payload._id ? action.payload : task
+        ),
+        status: "idle",
+      };
+    case "deleteTask":
+      return {
+        ...state,
+        tasks: state.tasks.filter((task) => task._id !== action.payload),
+        status: "idle",
+      };
 
     default:
       return new Error(`Unknown action ${action.type}`);

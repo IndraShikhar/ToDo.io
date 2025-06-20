@@ -14,4 +14,6 @@ router.route("/auth/me").get(authController.me);
 
 router.route("/auth/update").patch(authController.update);
 
+router.route("/auth/logout").get(authController.logout);
+
 export default router;

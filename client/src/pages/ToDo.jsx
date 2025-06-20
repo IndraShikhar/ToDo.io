@@ -6,7 +6,7 @@ import CreateNewTask from "../ui/CreateNewTask";
 
 function ToDo() {
   const [createNewTask, setCreateNewTask] = useState(false);
-  const { username, tasks } = useAuth();
+  const { username, tasks: taskCount } = useAuth();
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center mt-4 p-2 overflow-y-auto">
@@ -18,7 +18,6 @@ function ToDo() {
         <Button
           type={"primary"}
           onClick={() => {
-            console.log("Add Task");
             setCreateNewTask(true);
           }}
         >
@@ -26,7 +25,7 @@ function ToDo() {
         </Button>
       </div>
 
-      {tasks > 0 && (
+      {taskCount > 0 && (
         <div className=" flex items-center gap-2 font-semibold bg-red-100 text-amber-900 p-4 rounded-2xl mb-6">
           <span className="text-amber-900 font-bold text-2xl">&#x2022;</span>
           <p>Once a task is marked done it can not be undone !!</p>
@@ -34,6 +33,7 @@ function ToDo() {
       )}
 
       <div className="w-full flex-1 overflow-y-auto">
+        {/* <TaskPreview tasks={tasks} /> */}
         <Tasks />
       </div>
     </div>
