@@ -16,7 +16,7 @@ export const createAndSendToken = (user, statusCode, message, res) => {
     ),
     secure: process.env.NODE_ENV !== "dev",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV !== "dev" ? "none" : "lax",
   });
 
   const shortUser = filterUserPublicData(user);
