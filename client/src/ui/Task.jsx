@@ -1,15 +1,25 @@
-import Checkbox from "./ui/CheckBox";
+import Checkbox from "./CheckBox";
 // import OptionIcon from "./ui/OptionIcon";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Task({ task }) {
   const [option, setOption] = useState(false);
+  const [completed, setCompleted] = useState(task.completed);
+
+  useEffect(
+    function () {
+      console.log(
+        `Task ${task._id} with title '${task.title}' is ${completed}`
+      );
+    },
+    [completed, task._id, task.title]
+  );
 
   return (
-    <div className="relative group rounded-2xl shadow-lg bg-amber-100 p-6 flex gap-4 items-start hover:shadow-xl transition-all duration-300">
+    <div className="relative group rounded-2xl shadow-lg bg-amber-100 p-6 flex items-center justify-center gap-4 hover:shadow-xl transition-all duration-300">
       {/* Options Icon */}
       <div className="absolute top-3 right-3">
         <button
@@ -34,7 +44,7 @@ function Task({ task }) {
 
       {/* Checkbox */}
       <div className="mt-1">
-        <Checkbox />
+        <Checkbox setCompleted={setCompleted} value={completed} />
       </div>
 
       {/* Task Info */}
@@ -46,7 +56,7 @@ function Task({ task }) {
       </div>
 
       {/* Created Date */}
-      <div className="flex flex-col justify-center items-center ml-auto mr-8 text-sm text-amber-800 text-right whitespace-nowrap">
+      <div className="flex flex-col justify-center items-center ml-auto text-xs md:text-sm  text-amber-800 text-right whitespace-nowrap">
         <p>Created</p>
         <p className="font-semibold">{task.createdAt.slice(0, 10)}</p>
       </div>

@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 import express from "express";
 import dotenv from "dotenv";
 
-import Task from "../models/taskModel.js";
+// import Task from "../models/taskModel.js";
 import User from "../models/userModel.js";
 
-dotenv.config({ path: "./config.env" });
+dotenv.config();
+// dotenv.config({ path: "./config.env" });
 
 const DB = process.env.DATABASE.replace(
   "<db_password>",
@@ -46,3 +47,7 @@ const deleteData = async () => {
 
 process.argv[2] === "-i" ? importData() : "";
 process.argv[2] === "-d" ? deleteData() : "";
+
+// command to run this file
+// node server/data/import-data -i
+// node server/data/import-data -d

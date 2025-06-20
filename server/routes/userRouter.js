@@ -1,16 +1,17 @@
 import express from "express";
-import userController from "../controllers/userController.js";
 import authController from "../controllers/authController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(userController.getAllUsers);
-// router.route("/:id").get(userController.getUserById);
-router.route("/signup").post(authController.signup);
-router.route("/login").post(authController.login);
+router.route("/auth/signup").post(authController.signup);
 
-router.use(authController.protect);
-router.route("/me").get(userController.getCurrentUser);
-// router.route("/logout").post(authController.logout);
+router.route("/auth/login").post(authController.login);
+
+router.use(authMiddleware.protect);
+
+router.route("/auth/me").get(authController.me);
+
+router.route("/auth/update").patch(authController.update);
 
 export default router;

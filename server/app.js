@@ -1,26 +1,51 @@
 import express from "express";
-import fs from "fs";
-import taskRouter from "./routes/taskRouter.js";
-import userRouter from "./routes/userRouter.js";
 import cors from "cors";
+
+import userRouter from "./routes/userRouter.js";
+import taskRouter from "./routes/taskRouter.js";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "https://your-frontend.com",
+  "http://localhost:5173", // For local development
+  "http://192.168.0.106:5173",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error(`CORS Error: ${origin} not allowed`));
+    }
+  },
+  credentials: true, // If you want to allow cookies or HTTP auth
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
-const tasks = JSON.parse(fs.readFileSync("./data/task.json"));
-const users = JSON.parse(fs.readFileSync("./data/user.json"));
-
-// Routes
-app.use("/api/v1/task", taskRouter);
-app.use("/api/v1/user", userRouter);
-
-app.get("/", (req, res) => {
-  res
-    .status(200)
-    .json({ status: "success", message: "Welcome to Task Manager API" });
+app.get("/", (req, res, next) => {
+  res.status(200).json({ status: "success", message: "The is the TODOio API" });
 });
+
+app.post("/", (req, res, next) => {
+  const data = req.body;
+  res.status(200).json({
+    status: "success",
+    data: {
+      message: "You sent this data",
+      data,
+    },
+  });
+});
+
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/task", taskRouter);
 
 export default app;

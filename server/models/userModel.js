@@ -1,84 +1,63 @@
 import mongoose from "mongoose";
-import validator from "validator";
-import bcrypt from "bcryptjs";
 
-const userSchema = mongoose.Schema(
+import bcrypt from "bcrypt";
+import validator from "validator";
+
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      required: [true, "Please provide a username"],
+      required: [true, "Username is required"],
       unique: [true, "Username already exists"],
-    },
-    displayname: {
-      type: String,
-      //   default: this.username,
-      //   required: [true, "Please provide a display name"],
     },
     email: {
       type: String,
-      required: [true, "Please provide an email"],
+      required: [true, "Email is required"],
       unique: [true, "Email already exists"],
-      validate: validator.isEmail,
+      validate: {
+        validator: validator.isEmail,
+        message: "Invalid email format",
+      },
     },
     password: {
       type: String,
-      required: [true, "Please provide a password"],
+      required: [true, "Password is required"],
+      //   validate: {
+      //     vlaidator: validator.isStrongPassword,
+      //     message: `Password is not strong enough.
+      //     Password should contain at least 8 characters,one uppercase letter, one lowercase letter,one number and one special character`,
+      //   },
       select: false,
     },
-    passwordConfirm: {
-      type: String,
-      required: [true, "Please confirm your password"],
-      validate: {
-        validator: function (el) {
-          return el === this.password;
-        },
-        message: "Passwords do not match",
-      },
-      select: false,
-    },
-    photo: {
+    profilePic: {
       type: String,
       default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
-    tasks: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
-      default: [],
-    },
+    tasks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Task",
+        default: [],
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.displayname || this.displayname == "") {
-    this.displayname = this.username;
-  }
-  next();
-});
+userSchema.index({ username: 1, email: 1 }, { unique: true });
 
 userSchema.pre("save", async function (next) {
-  // Run this if the password is updated or the user is new
-  if (this.isModified("password") || this.isNew) {
-    this.passwordConfirm = undefined;
-    this.password = await bcrypt.hash(this.password, 12);
-  }
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 12);
+
   next();
 });
 
-userSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "tasks",
-    select: "-__v -updatedAt",
-  });
-  next();
-});
-
-userSchema.methods.correctPassword = async function (
-  userPassword,
-  candidatePassword
-) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+userSchema.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password);
 };
 
 const User = mongoose.model("User", userSchema);

@@ -1,24 +1,26 @@
 import mongoose from "mongoose";
+
 import dotenv from "dotenv";
-dotenv.config({ path: "./config.env" });
+dotenv.config();
+
 import app from "./app.js";
 
-const DB = process.env.DATABASE.replace(
+const DB = process.env.DATABASE.replaceAll(
   "<db_password>",
   process.env.DATABASE_PASSWORD
 );
 
-mongoose
-  .connect(DB, {
-    // useNewUrlParser: true,
-    // useCreateIndex: true,
-    // useFindAndModify: false,
-  })
-  .then(() => {
-    console.log("DB connection successful");
-  });
-
-const port = process.env.PORT || 4000;
-const server = app.listen(port, () => {
-  console.log("Server is running on port ", port);
+mongoose.connect(DB).then(() => {
+  console.log("Database connection successful");
 });
+
+const port = process.env.PORT || 2000;
+const HOST = "0.0.0.0";
+
+const server = app.listen(port, HOST, () => {
+  console.log(`Server running at http://${HOST}:${port}`);
+});
+
+// const server = app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });

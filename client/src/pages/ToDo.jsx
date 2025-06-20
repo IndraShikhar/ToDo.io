@@ -1,98 +1,39 @@
-import { useEffect, useState } from "react";
-import Button from "./../components/ui/Button";
-import UserCard from "./../components/UserCard";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import ConfirmLogout from "./../components/ConfirmLogout";
-import CreateNewTask from "./../components/CreateNewTask";
-import Tasks from "./../components/Tasks";
-import Cookie from "js-cookie";
-import { useToDo } from "../contexts/ToDoContext";
-import UpdateProfile from "../components/UpdateProfile";
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import Button from "../ui/Button";
+import Tasks from "../ui/Tasks";
+import CreateNewTask from "../ui/CreateNewTask";
 
 function ToDo() {
-  const [overlay, setOverlay] = useState(false);
   const [createNewTask, setCreateNewTask] = useState(false);
-  const [editProfile, setEditProfile] = useState(false);
-
-  const { setTasks, setUser, API } = useToDo();
-
-  useEffect(() => {
-    async function fetchTasks() {
-      try {
-        const token = Cookie.get("jwt");
-        const res = await fetch(`${API}/user/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-
-        const { _id, username, displayname, email, photo } = data.data.user;
-        setUser({
-          _id,
-          username,
-          displayname,
-          email,
-          photo,
-        });
-        setTasks(data.data.user.tasks);
-        console.log(data);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-
-    fetchTasks();
-  }, [API, setTasks, setUser]);
-
-  function handleLogoutButton() {
-    setOverlay((overlay) => !overlay);
-  }
-
-  function handleLogoutCancle() {
-    setOverlay((overlay) => !overlay);
-  }
-
-  function handleCreateNewTask() {
-    setCreateNewTask((createNewTask) => !createNewTask);
-  }
-
-  function handleCreateNewTaskCancle() {
-    setCreateNewTask((createNewTask) => !createNewTask);
-  }
+  const { username, tasks } = useAuth();
 
   return (
-    <div
-      className={`no-scrollbar transition-all duration-300 ${
-        overlay || createNewTask
-          ? "fixed inset-0 z-20 bg-amber-50"
-          : "relative z-0 overflow-y-auto max-h-screen bg-amber-50"
-      }`}
-    >
-      {overlay && <ConfirmLogout handleLogoutCancle={handleLogoutCancle} />}
-      {createNewTask && (
-        <CreateNewTask handleCreateNewTaskCancle={handleCreateNewTaskCancle} />
-      )}
-      {editProfile && (
-        <UpdateProfile onClose={setEditProfile} onSave={() => {}} />
-      )}
+    <div className="flex flex-1 flex-col items-center justify-center mt-4 p-2 overflow-y-auto">
+      {createNewTask && <CreateNewTask setCreateNewTask={setCreateNewTask} />}
+      <div className="flex items-center justify-between w-full mb-2 lg:mb-4 px-4 lg:px-8 xl:px-12">
+        <h1 className="mr-auto font-bold text-2xl text-amber-900 flex flex-col lg:text-3xl">
+          Welcome Back, <span className="capitalize">{username}</span>
+        </h1>
+        <Button
+          type={"primary"}
+          onClick={() => {
+            console.log("Add Task");
+            setCreateNewTask(true);
+          }}
+        >
+          + Add Task
+        </Button>
+      </div>
 
-      <div
-        className={`m-6 md:m-8 pb-10 transition-all ${
-          overlay || createNewTask ? "blur-sm pointer-events-none" : ""
-        } bg-white rounded-3xl shadow-xl flex flex-col gap-6`}
-      >
-        <UserCard
-          handleLogout={handleLogoutButton}
-          setEditProfile={setEditProfile}
-        />
-
-        <div className="flex justify-between items-center px-6 md:px-12">
-          <Button content="Filter" icon={<FilterListIcon />} />
-          <Button content="+ New Task" onClick={handleCreateNewTask} />
+      {tasks > 0 && (
+        <div className=" flex items-center gap-2 font-semibold bg-red-100 text-amber-900 p-4 rounded-2xl mb-6">
+          <span className="text-amber-900 font-bold text-2xl">&#x2022;</span>
+          <p>Once a task is marked done it can not be undone !!</p>
         </div>
+      )}
 
+      <div className="w-full flex-1 overflow-y-auto">
         <Tasks />
       </div>
     </div>

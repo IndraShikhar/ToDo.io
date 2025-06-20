@@ -1,11 +1,15 @@
-import { useToDo } from "../contexts/ToDoContext";
-import OverLay from "./ui/OverLay";
+// import { useToDo } from "../contexts/ToDoContext";
+import { useAuth } from "../contexts/AuthContext";
+import OverLay from "./OverLay";
 import { useState } from "react";
 
 function UpdateProfile({ onClose, onSave }) {
-  const { user } = useToDo();
+  // const { user } = useToDo();
+  const { username, email, profilePic } = useAuth();
+  const user = { username, email, profilePic };
+
   const [formData, setFormData] = useState({
-    name: user?.displayname || "",
+    name: user?.username || "",
     email: user?.email || "",
     profilePic: user?.profilePic || "",
   });

@@ -1,25 +1,49 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import Home from "./pages/Home";
 import ToDo from "./pages/ToDo";
-// import PageNotFound from "./pages/PageNotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Redirect from "./pages/Redirect";
-import { ToDoProvider } from "./contexts/ToDoContext";
-// import dotenv from "dotenv";
-// dotenv.config({ path: "./config.env" });
+import AppLayout from "./components/AppLayout";
+import { AuthProvider } from "./contexts/AuthContext";
+import Protected from "./ui/Protected";
+import { useEffect } from "react";
+import { TaskProvider } from "./contexts/TaskContext";
 
 function App() {
+  const router = createBrowserRouter([
+    {
+      element: <AppLayout />,
+      children: [
+        {
+          path: "/",
+          element: <Home />,
+        },
+        {
+          path: "/app",
+          element: (
+            <Protected>
+              <ToDo />
+            </Protected>
+          ),
+        },
+        {
+          path: "/login",
+          element: <Login />,
+        },
+        {
+          path: "/signup",
+          element: <SignUp />,
+        },
+      ],
+    },
+  ]);
+
   return (
-    <BrowserRouter>
-      <ToDoProvider>
-        <Routes>
-          <Route path="/*" element={<Redirect page={"login"} />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/app" element={<ToDo />} />
-        </Routes>
-      </ToDoProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <TaskProvider>
+        <RouterProvider router={router} />
+      </TaskProvider>
+    </AuthProvider>
   );
 }
 

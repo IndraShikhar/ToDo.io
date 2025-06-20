@@ -1,77 +1,8 @@
-import { log } from "console";
 import User from "../models/userModel.js";
-import jwt from "jsonwebtoken";
-import { promisify } from "util";
-
-function generateJWTToken(id) {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-}
-
-function createSendToken(user, statusCode, res) {
-  const token = generateJWTToken(user._id);
-
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-  };
-
-  res.cookie("jwt", token, cookieOptions);
-
-  const shrunkUser = {
-    _id: user._id,
-    username: user.username,
-    displayname: user.displayname,
-    email: user.email,
-    photo: user.photo,
-  };
-
-  res.status(statusCode).json({
-    status: "success",
-    message: "Login successful",
-    data: {
-      user: shrunkUser,
-      token,
-    },
-  });
-}
+import { createAndSendToken, filterUserPublicData } from "../utils/helpers.js";
 
 const authController = {
-  async signup(req, res, next) {
-    const { username, displayname, email, password, passwordConfirm } =
-      req.body;
-
-    if (password !== passwordConfirm) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Passwords do not match",
-      });
-    }
-
-    try {
-      const newUser = await User.create({
-        username,
-        displayname,
-        email,
-        password,
-        passwordConfirm,
-      });
-
-      createSendToken(newUser, 201, res);
-      //
-    } catch (err) {
-      console.log(err);
-      res.status(400).json({
-        status: "fail",
-        message: err.message,
-      });
-    }
-  },
-
-  async login(req, res, next) {
+  async login(req, res) {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -81,90 +12,102 @@ const authController = {
       });
     }
 
-    try {
-      const user = await User.findOne({ username }).select("+password");
+    const user = await User.findOne({ username }).select("+password");
 
-      if (!user || !(await user.correctPassword(user.password, password))) {
-        return res.status(401).json({
-          status: "fail",
-          message: "Incorrect username or password",
-        });
-      }
-
-      createSendToken(user, 200, res);
-      //
-    } catch (err) {
-      console.log(err);
-      res.status(400).json({
-        status: "fail",
-        message: err.message,
-      });
-    }
-  },
-
-  async protect(req, res, next) {
-    let token;
-    // Get token from header or from cookie
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer ")
-    ) {
-      token = req.headers.authorization.split(" ")[1].trim();
-    } else if (req.cookies?.jwt) {
-      token = req.cookies.jwt;
-    }
-
-    // Check if the token exists
-    if (!token) {
+    if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         status: "fail",
-        message: "You are not logged in! Please log in to get access.",
+        message: "Incorrect username or password",
       });
     }
 
-    try {
-      // Decode the token using secret
-      const decoded = await promisify(jwt.verify)(
-        token,
-        process.env.JWT_SECRET
-      );
-      // Fetch the user from database
-      const user = await User.findById(decoded.id);
-      // Check if the id is correct and user exists
-      if (!user) {
-        return res.status(401).json({
-          status: "fail",
-          message: "The user belonging to this token does not exist",
-        });
-      }
+    createAndSendToken(user, 200, "Logged in successfully", res);
 
-      // If the user exists, check if they changed password after the token was issued
-      // TODO
-      // // Do this when implement the reset password feature
+    // const shortUser = filterUserPublicData(user);
 
-      // The user is already logged in
-      // Putting user in res for future use
-      res.locals.user = user;
-      return next();
-    } catch (err) {
-      return res.status(401).json({
-        status: "fail",
-        message:
-          "You are not logged in! Please log in to get access. (Protect Error)",
-      });
-    }
+    // req.status(200).json({
+    //   status: "success",
+    //   message: "Logged in successfully",
+    //   data: {
+    //     user: shortUser,
+    //   },
+    // });
   },
 
-  // logout(req, res, next) {
-  //   res.cookie("jwt", "loggedout", {
-  //     expires: new Date(Date.now() + 10 * 1000),
-  //     httpOnly: true,
-  //   });
-  //   res.status(200).json({
-  //     status: "success",
-  //     message: "Logout successful",
-  //   });
-  // },
+  async signup(req, res) {
+    const { username, password, email, profilePic } = req.body;
+
+    const newUser = await User.create({
+      username,
+      password,
+      email,
+      profilePic,
+    });
+
+    createAndSendToken(newUser, 201, "Signed up successfully", res);
+
+    // const shortUser = filterUserPublicData(newUser);
+
+    // res.status(200).json({
+    //   status: "success",
+    //   message: "Signed up successfully",
+    //   data: {
+    //     user: shortUser,
+    //   },
+    // });
+  },
+
+  me(req, res) {
+    // This will always run after the protect route so will have the current User in req.user
+
+    const shortUser = filterUserPublicData(req.user);
+
+    res.status(200).json({
+      status: "success",
+      message: "You are logged in",
+      data: {
+        user: shortUser,
+      },
+    });
+  },
+
+  update(req, res) {
+    const { username, email, profilePic, password, newPassword } = req.body;
+
+    if (req.user.username !== username)
+      return res.status(400).json({
+        status: "fail",
+        message: "Username cannot be changed",
+      });
+
+    req.user.email = email;
+    req.user.profilePic = profilePic;
+
+    if (newPassword && req.user.comparePassword(password)) {
+      req.user.password = newPassword;
+    } else {
+      return res.status(400).json({
+        status: "fail",
+        message: "Incorrect password",
+      });
+    }
+
+    req.user.save({
+      validateBeforeSave: true,
+    });
+
+    console.log(req.user);
+
+    const shortUser = filterUserPublicData(req.user);
+
+    res.status(200).json({
+      status: "success",
+      message: "Profile updated successfully",
+      data: {
+        user: shortUser,
+      },
+    });
+  },
 };
 
 export default authController;

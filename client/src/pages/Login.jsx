@@ -1,157 +1,112 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToDo } from "../contexts/ToDoContext";
-import Cookie from "js-cookie";
-import Redirect from "./Redirect";
-import AlertBar from "../components/ui/AlertBar";
+import { attemptLogin, fetchCurrentUserTasks } from "../services/apiTODOio";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router";
+
+import Button from "../ui/Button";
+import { useTask } from "../contexts/TaskContext";
 
 function Login() {
-  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAttempting, setIsAttempting] = useState(false);
 
-  const { loggedIn, setLoggedIn, API } = useToDo();
+  const { dispatch, isLoggedIn } = useAuth();
+  const { dispatch: taskDispatch } = useTask();
+  const navigator = useNavigate();
 
-  const [credentials, setCredentials] = useState({
-    username: "",
-    password: "",
-  });
+  useEffect(
+    function () {
+      if (isLoggedIn) {
+        navigator("/app");
+      }
+    },
+    [isLoggedIn, navigator]
+  );
 
-  const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleLogin = (e) => {
+  async function handleSubmit(e) {
+    setIsAttempting(true);
+    dispatch({ type: "loading" });
     e.preventDefault();
-    console.log("Login attempt:", credentials);
-    // Add authentication logic here
-
-    async function attemptLogin() {
-      const result = await fetch(`${API}/user/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data = await result.json();
+    try {
+      const data = await attemptLogin(username, password);
+      console.log(data);
       if (data.status === "success") {
-        Cookie.set("jwt", data.data.token, { expires: 1 });
-        setLoggedIn(true);
-      } else {
-        setError(data.message);
-      }
-    }
+        const taskData = await fetchCurrentUserTasks();
 
-    attemptLogin();
-  };
-
-  useEffect(() => {
-    async function checkLogin() {
-      const token = Cookie.get("jwt");
-      if (token) {
-        try {
-          const result = await fetch(`${API}/user/me`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          console.log(result);
-
-          const data = await result.json();
-          if (data.status === "success") {
-            setLoggedIn(true);
-          }
-        } catch (err) {
-          console.log(err);
+        if (taskData.status === "success") {
+          taskDispatch({ type: "setTasks", payload: taskData.data.tasks });
         }
+
+        dispatch({ type: "login", payload: data.data.user });
+        navigator("/app");
       }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsAttempting(false);
     }
-
-    checkLogin();
-  }, [setLoggedIn, API]);
-
-  useEffect(() => {
-    if (loggedIn) navigate("/app");
-  }, [navigate, loggedIn]);
-
-  if (loggedIn) return <Redirect page={"app"} />;
+  }
 
   return (
-    <div className="w-full min-h-screen flex justify-center items-center bg-amber-50">
-      <div className="w-[95%] max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-amber-300">
-        <h2 className="text-4xl font-bold text-white text-center bg-amber-900 p-6 mb-4">
-          Login
+    <div className="flex mt-12 items-center justify-center px-4">
+      <div className=" bg-white/80 border border-white/40 shadow-xl rounded-3xl p-10 w-full max-w-sm">
+        <h2 className="text-2xl font-bold text-amber-900 text-center mb-6">
+          Welcome Back 👋
         </h2>
-        <form onSubmit={handleLogin} className="flex flex-col gap-4 px-8 pb-8">
-          {/* Username */}
-          <div className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="relative">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              placeholder=" "
+              onChange={(e) => setUsername(e.target.value)}
+              className={`peer w-full rounded-lg border border-amber-400 bg-white/60 px-4 ${
+                username === "" ? "pt-4" : "pt-6"
+              } pb-2 text-amber-900 placeholder-transparent focus:outline-none focus:ring-2 focus:ring-amber-600 focus:pt-6 transition-all duration-300`}
+            />
             <label
               htmlFor="username"
-              className="text-sm font-semibold mb-1 text-amber-800"
+              className="absolute left-4 top-2 text-amber-700 text-sm transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-amber-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-amber-700"
             >
               Username
             </label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              value={credentials.username}
-              onChange={handleChange}
-              placeholder="Enter your username"
-              className="p-2 rounded-lg bg-amber-100 focus:outline-amber-900"
-              required
-            />
           </div>
 
-          {/* Password */}
-          <div className="flex flex-col">
-            <label
-              htmlFor="password"
-              className="flex justify-between text-sm font-semibold mb-1 text-amber-800"
-            >
-              <span>Password</span>
-              <span className="text-amber-900 text-xs cursor-pointer hover:underline">
-                Forgot?
-              </span>
-            </label>
+          <div className="relative">
             <input
               type="password"
-              name="password"
               id="password"
-              value={credentials.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              className="p-2 rounded-lg bg-amber-100 focus:outline-amber-900"
+              name="password"
               required
+              placeholder=" "
+              onChange={(e) => setPassword(e.target.value)}
+              className={`peer w-full rounded-lg border border-amber-400 bg-white/60 px-4 ${
+                username === "" ? "pt-4" : "pt-6"
+              } pb-2 text-amber-900 placeholder-transparent focus:outline-none focus:ring-2 focus:ring-amber-600 focus:pt-6 transition-all duration-300`}
             />
+            <label
+              htmlFor="password"
+              className="absolute left-4 top-2 text-amber-700 text-sm transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-amber-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-amber-700"
+            >
+              Password
+            </label>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="p-3 mt-2 rounded-lg bg-amber-900 text-white font-bold hover:bg-amber-800 transition-all duration-300"
-          >
-            Login
-          </button>
+          <Button type="submit" disabled={isAttempting}>
+            {isAttempting ? "Logging in..." : "Login"}
+          </Button>
 
-          {/* Navigation to Signup */}
-          <p className="text-sm text-center mt-4">
-            Don{"'"}t have an account?{" "}
-            <span
-              className="text-amber-900 font-semibold cursor-pointer underline"
-              onClick={() => navigate("/signup")}
-            >
-              Sign Up
+          <p className="text-center text-sm text-amber-800">
+            Don’t have an account?{" "}
+            <span className="text-amber-900 font-medium underline cursor-pointer hover:text-amber-600">
+              Sign up
             </span>
           </p>
         </form>
       </div>
-      {error && <AlertBar message={error} onClose={() => setError("")} />}
     </div>
   );
 }

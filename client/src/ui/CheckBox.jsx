@@ -1,12 +1,16 @@
-import React from "react";
 import styled from "styled-components";
 
-const Checkbox = () => {
+function Checkbox({ setCompleted, value }) {
   return (
     <StyledWrapper>
       <div className="checkbox-container">
         <label className="ios-checkbox red">
-          <input type="checkbox" />
+          <input
+            onChange={(e) => setCompleted(e.target.checked)}
+            type="checkbox"
+            value={value}
+            disabled={value}
+          />
           <div className="checkbox-wrapper">
             <div className="checkbox-bg" />
             <svg className="checkbox-icon" viewBox="0 0 24 24" fill="none">
@@ -24,7 +28,7 @@ const Checkbox = () => {
       </div>
     </StyledWrapper>
   );
-};
+}
 
 const StyledWrapper = styled.div`
   .checkbox-container {

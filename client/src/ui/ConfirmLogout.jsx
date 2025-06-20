@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router";
-import OverLay from "./ui/OverLay";
+import OverLay from "./OverLay";
 import Cookie from "js-cookie";
-import { useToDo } from "../contexts/ToDoContext";
+import { useAuth } from "../contexts/AuthContext";
 
 function ConfirmLogout({ handleLogoutCancle }) {
-  const { setLoggedIn } = useToDo();
+  const { dispatch } = useAuth();
   const navigate = useNavigate();
 
   function handleConfirmLogout() {
     Cookie.remove("jwt");
-    setLoggedIn(false);
+    dispatch({ type: "logout" });
+    // setLoggedIn(false);
     navigate("/");
   }
 
