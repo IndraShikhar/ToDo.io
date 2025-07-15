@@ -7,6 +7,9 @@ import taskRouter from "./routes/taskRouter.js";
 const app = express();
 
 const allowedOrigins = [
+  "https://to-do-io-git-main-indrashikhars-projects.vercel.app/",
+  "https://to-do-io.vercel.app",
+  "https://to-do-io-indrashikhars-projects.vercel.app",
   "http://localhost:5173", // For local development
 ];
 
